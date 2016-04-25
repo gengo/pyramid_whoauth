@@ -4,8 +4,6 @@ pyramid_whoauth
 
 An authentication policy for Pyramid that uses the repoze.who v2 API.
 
-    This is a fork of the original [Pyramid WhoAuth](https://github.com/mozilla-services/pyramid_whoauth).
-    Our motivation was to ensure that it can be run on Python 3.
 
 Overview
 ========

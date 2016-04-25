@@ -76,13 +76,13 @@ def groupfinder(userid, request):
 
 
 GOOD_AUTHZ = {
-  "test": "Basic " + base64.b64encode("test:test"),
-  "test2": "Basic " + base64.b64encode("test2:test2")}
+    "test": "Basic " + base64.b64encode("test:test"),
+    "test2": "Basic " + base64.b64encode("test2:test2")}
 
 
 BAD_AUTHZ = {
-  "test": "Basic " + base64.b64encode("test:badpwd"),
-  "test2": "Basic " + base64.b64encode("test2:horseyhorseyneigh")}
+    "test": "Basic " + base64.b64encode("test:badpwd"),
+    "test2": "Basic " + base64.b64encode("test2:horseyhorseyneigh")}
 
 
 SETTINGS = {
@@ -95,8 +95,8 @@ SETTINGS = {
     "who.identifiers.plugins": "dummyid basicauth dummyredir",
     "who.authenticators.plugins": ["dummyauth"],
     "who.challengers.plugins": "basicauth",
-    "who.general.challenge_decider":
-            "repoze.who.classifiers:default_challenge_decider"}
+    "who.general.challenge_decider": "repoze.who.classifiers:default_challenge_decider"
+}
 
 
 def raise_forbidden(request):
@@ -267,6 +267,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
     def test_challenge_view_gets_invoked(self):
         app = self.config.make_wsgi_app()
         req = make_request(PATH_INFO="/forbidden")
+
         def start_response(status, headers):  # NOQA
             self.assertEquals(status, "401 Unauthorized")
             self.assertHeadersContain(headers, "WWW-Authenticate", "MyRealm")
@@ -277,6 +278,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         del policy.api_factory.challengers[:]
         app = self.config.make_wsgi_app()
         req = make_request(PATH_INFO="/forbidden")
+
         def start_response(status, headers):  # NOQA
             self.assertEquals(status, "403 Forbidden")
         "".join(app(req.environ, start_response))
