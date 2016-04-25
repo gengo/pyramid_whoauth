@@ -16,21 +16,30 @@ requires = ['pyramid', 'repoze.who', 'unittest2']
 if sys.version_info[0] == 3:
     requires[2] += "py3k"
 
+extras_require = {
+    'test': [
+        'flake8',
+        'nose',
+    ]
+}
+
+
 setup(name='pyramid_whoauth',
       version='0.1.2',
       description='pyramid_whoauth',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
-        "Programming Language :: Python",
-        "Framework :: Pylons",
-        "Topic :: Internet :: WWW/HTTP",
-        ],
+          "Programming Language :: Python :: 2.7",
+          "Framework :: Pylons",
+          "Topic :: Internet :: WWW/HTTP",
+      ],
       author='Mozilla Services',
       author_email='services-dev@mozilla.org',
       url='https://github.com/mozilla-services/pyramid_whoauth',
       keywords='web pyramid pylons authentication',
       packages=find_packages(),
       include_package_data=True,
+      extras_require=extras_require,
       zip_safe=False,
       install_requires=requires,
       tests_require=requires,

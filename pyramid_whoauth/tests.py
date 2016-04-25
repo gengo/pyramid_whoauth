@@ -74,13 +74,13 @@ def groupfinder(userid, request):
 
 
 GOOD_AUTHZ = {
-  "test": "Basic " + base64.b64encode(b"test:test").decode("ascii"),
-  "test2": "Basic " + base64.b64encode(b"test2:test2").decode("ascii")}
+    "test": "Basic " + base64.b64encode(b"test:test").decode("ascii"),
+    "test2": "Basic " + base64.b64encode(b"test2:test2").decode("ascii")}
 
 
 BAD_AUTHZ = {
-  "test": "Basic " + base64.b64encode(b"test:badpwd").decode("ascii"),
-  "test2": "Basic " + base64.b64encode(b"test2:horseyhorseyneigh").decode("ascii")}
+    "test": "Basic " + base64.b64encode(b"test:badpwd").decode("ascii"),
+    "test2": "Basic " + base64.b64encode(b"test2:horseyhorseyneigh").decode("ascii")}
 
 
 SETTINGS = {
@@ -93,8 +93,8 @@ SETTINGS = {
     "who.identifiers.plugins": "dummyid basicauth dummyredir",
     "who.authenticators.plugins": ["dummyauth"],
     "who.challengers.plugins": "basicauth",
-    "who.general.challenge_decider":
-            "repoze.who.classifiers:default_challenge_decider"}
+    "who.general.challenge_decider": "repoze.who.classifiers:default_challenge_decider"
+}
 
 
 def raise_forbidden(request):
@@ -265,6 +265,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
     def test_challenge_view_gets_invoked(self):
         app = self.config.make_wsgi_app()
         req = make_request(PATH_INFO="/forbidden")
+
         def start_response(status, headers):  # NOQA
             self.assertEquals(status, "401 Unauthorized")
             self.assertHeadersContain(headers, "WWW-Authenticate", "MyRealm")
@@ -275,6 +276,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         del policy.api_factory.challengers[:]
         app = self.config.make_wsgi_app()
         req = make_request(PATH_INFO="/forbidden")
+
         def start_response(status, headers):  # NOQA
             self.assertEquals(status, "403 Forbidden")
         b"".join(app(req.environ, start_response))
@@ -406,4 +408,3 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         policy.api_factory.identifiers.pop()
         req = make_request(PATH_INFO="/GO_AWAY")
         self.assertRaises(NotFound, app, req.environ, start_response1)
-

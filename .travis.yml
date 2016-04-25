@@ -1,0 +1,19 @@
+sudo: false
+language:
+  - python
+python:
+  - '3.4'
+before_install:
+  - pip install --upgrade setuptools
+
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
+
+install:
+  - python setup.py dev
+
+script:
+  - python setup.py flake8
+  - python setup.py nosetests
