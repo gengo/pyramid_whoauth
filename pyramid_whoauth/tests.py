@@ -15,7 +15,7 @@ from pyramid.response import Response
 from pyramid.router import Router
 from pyramid.exceptions import Forbidden, NotFound
 
-from zope.interface import implements
+from zope.interface import implementer
 from repoze.who.interfaces import IAuthenticator, IIdentifier, IAPIFactory
 
 from pyramid_whoauth.auth import WhoAuthenticationPolicy
@@ -23,20 +23,18 @@ from pyramid_whoauth.tweens import whoauth_tween_factory
 from pyramid_whoauth.utils import api_factory_from_settings
 
 
+@implementer(IAuthenticator)
 class DummyAuthenticator(object):
     """Authenticator that accepts login and password."""
-
-    implements(IAuthenticator)
 
     def authenticate(self, environ, identity):
         if identity.get("login") == identity.get("password"):
             return identity.get("login")
 
 
+@implementer(IIdentifier)
 class DummyRememberer(object):
     """Identifier that sets some dummy headers."""
-
-    implements(IIdentifier)
 
     def identify(self, environ):
         return None
@@ -76,13 +74,13 @@ def groupfinder(userid, request):
 
 
 GOOD_AUTHZ = {
-  "test": "Basic " + base64.b64encode("test:test"),
-  "test2": "Basic " + base64.b64encode("test2:test2")}
+  "test": "Basic " + base64.b64encode(b"test:test").decode("ascii"),
+  "test2": "Basic " + base64.b64encode(b"test2:test2").decode("ascii")}
 
 
 BAD_AUTHZ = {
-  "test": "Basic " + base64.b64encode("test:badpwd"),
-  "test2": "Basic " + base64.b64encode("test2:horseyhorseyneigh")}
+  "test": "Basic " + base64.b64encode(b"test:badpwd").decode("ascii"),
+  "test2": "Basic " + base64.b64encode(b"test2:horseyhorseyneigh").decode("ascii")}
 
 
 SETTINGS = {
@@ -245,7 +243,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
 
     def test_settings_from_config_file(self):
         with tempfile.NamedTemporaryFile() as f:
-            f.write(dedent("""
+            f.write(bytearray(dedent("""
             [plugin:basicauth]
             use = repoze.who.plugins.basicauth:make_plugin
             realm = SomeRealm
@@ -257,7 +255,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
             plugins = dummy
             [challengers]
             plugins = basicauth
-            """))
+            """), "utf-8"))
             f.flush()
             settings = {"who.config_file": f.name}
             policy = WhoAuthenticationPolicy.from_settings(settings)
@@ -270,7 +268,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         def start_response(status, headers):  # NOQA
             self.assertEquals(status, "401 Unauthorized")
             self.assertHeadersContain(headers, "WWW-Authenticate", "MyRealm")
-        "".join(app(req.environ, start_response))
+        b"".join(app(req.environ, start_response))
 
     def test_challenge_view_with_no_challengers(self):
         policy = self.config.registry.getUtility(IAuthenticationPolicy)
@@ -279,7 +277,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         req = make_request(PATH_INFO="/forbidden")
         def start_response(status, headers):  # NOQA
             self.assertEquals(status, "403 Forbidden")
-        "".join(app(req.environ, start_response))
+        b"".join(app(req.environ, start_response))
 
     def test_login_view(self):
         app = self.config.make_wsgi_app()
@@ -290,7 +288,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
             self.assertHeadersContain(headers, "WWW-Authenticate", "MyRealm")
         req = make_request(PATH_INFO="/login",
                            QUERY_STRING="came_from=/somewhere")
-        "".join(app(req.environ, start_response1))
+        b"".join(app(req.environ, start_response1))
 
         #  Requesting the login view with basic-auth creds gives a redirect
         def start_response2(status, headers):
@@ -299,7 +297,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         req = make_request(PATH_INFO="/login",
                            HTTP_AUTHORIZATION=GOOD_AUTHZ["test"],
                            QUERY_STRING="came_from=/somewhere")
-        "".join(app(req.environ, start_response2))
+        b"".join(app(req.environ, start_response2))
 
         #  Requesting the login view with creds in params gives a redirect
         def start_response3(status, headers):
@@ -308,7 +306,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         query_string = "came_from=/somewhere&login=test&password=test"
         req = make_request(PATH_INFO="/login",
                            QUERY_STRING=query_string)
-        "".join(app(req.environ, start_response3))
+        b"".join(app(req.environ, start_response3))
 
         #  Requesting the login view with bad creds gives a challenge
         def start_response4(status, headers):
@@ -317,7 +315,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         req = make_request(PATH_INFO="/login",
                            HTTP_AUTHORIZATION=BAD_AUTHZ["test"],
                            QUERY_STRING="came_from=/somewhere_outthere")
-        "".join(app(req.environ, start_response4))
+        b"".join(app(req.environ, start_response4))
 
     def test_logout_view(self):
         app = self.config.make_wsgi_app()
@@ -329,7 +327,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
             self.assertHeadersContain(headers, "WWW-Authenticate", "MyRealm")
         req = make_request(PATH_INFO="/logout",
                            QUERY_STRING="came_from=/somewhere")
-        "".join(app(req.environ, start_response1))
+        b"".join(app(req.environ, start_response1))
 
         #  Requesting the logout view with creds gives challenge+redirect.
         def start_response2(status, headers):
@@ -339,7 +337,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         req = make_request(PATH_INFO="/logout",
                            HTTP_AUTHORIZATION=GOOD_AUTHZ["test"],
                            QUERY_STRING="came_from=/somewhere")
-        "".join(app(req.environ, start_response2))
+        b"".join(app(req.environ, start_response2))
 
     def test_tween_sets_remember_headers(self):
         app = self.config.make_wsgi_app()
@@ -349,7 +347,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
             self.assertEquals(status, "200 OK")
             self.failIfHeadersContain(headers, "X-Dummy-Remember")
         req = make_request(PATH_INFO="/ok")
-        "".join(app(req.environ, start_response1))
+        b"".join(app(req.environ, start_response1))
 
         #  Requesting a view with bad creds should not try to remember me
         def start_response2(status, headers):
@@ -357,7 +355,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
             self.failIfHeadersContain(headers, "X-Dummy-Remember")
         req = make_request(PATH_INFO="/ok",
                            HTTP_AUTHORIZATION=BAD_AUTHZ["test"])
-        "".join(app(req.environ, start_response2))
+        b"".join(app(req.environ, start_response2))
 
         #  Requesting a view with good creds should try to remember me
         def start_response3(status, headers):
@@ -365,7 +363,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
             self.assertHeadersContain(headers, "X-Dummy-Remember", "DUMMY")
         req = make_request(PATH_INFO="/ok",
                            HTTP_AUTHORIZATION=GOOD_AUTHZ["test"])
-        "".join(app(req.environ, start_response3))
+        b"".join(app(req.environ, start_response3))
 
     def test_tween_factory_can_find_api_factory(self):
         registry = self.config.registry
@@ -394,7 +392,7 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         def start_response1(status, headers):
             self.assertEquals(status, "404 Not Found")
         req = make_request(PATH_INFO="/not_found")
-        "".join(app(req.environ, start_response1))
+        b"".join(app(req.environ, start_response1))
 
         # Requesting the redirecting view should get the special redirect
         def start_response2(status, headers):
@@ -408,3 +406,4 @@ class WhoAuthPolicyTests(unittest2.TestCase):
         policy.api_factory.identifiers.pop()
         req = make_request(PATH_INFO="/GO_AWAY")
         self.assertRaises(NotFound, app, req.environ, start_response1)
+

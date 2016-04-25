@@ -66,7 +66,8 @@ def api_factory_from_settings(settings, prefix="who."):
 
     # Grab out all the settings keys that start with our prefix.
     who_settings = {}
-    for name, value in settings.iteritems():
+    for name in settings:
+        value = settings[name]
         if not name.startswith(prefix):
             continue
         who_settings[name[len(prefix):]] = value
@@ -78,13 +79,15 @@ def api_factory_from_settings(settings, prefix="who."):
         with open(who_settings["config_file"], "r") as f:
             who_ini_lines.extend(ln.strip() for ln in f)
 
+    who_ini_dict = {}
     # Format any dotted setting names into an ini-file section.
     # For example, a settings file line like:
     #    who.identifiers.plugins = blah
     # Will become an ini-file entry like:
     #    [identifiers]
     #    plugins = blah
-    for name, value in who_settings.iteritems():
+    for name in who_settings:
+        value = who_settings[name]
         if isinstance(value, (list, tuple)):
             value = " ".join(value)
         else:
@@ -94,10 +97,19 @@ def api_factory_from_settings(settings, prefix="who."):
         except ValueError:
             pass
         else:
-            who_ini_lines.append("[%s]" % (section.replace(".", ":"),))
-            who_ini_lines.append("%s = %s" % (var, value))
+            section = section.replace(".", ":")
+            if section not in who_ini_dict:
+                who_ini_dict[section] = {}
 
-    # Now we can parse that config using repoze.who's own machinery.
+            who_ini_dict[section][var] = value
+
+    for section in who_ini_dict:
+        who_ini_lines.append("[%s]" % (section,))
+        for var in who_ini_dict[section]:
+            value = who_ini_dict[section][var]
+            who_ini_lines.append("%s = %s" % (var, value,))
+
+    # Now we can wparse that config using repoze.who's own machinery.
     parser = WhoConfig(who_settings.get("here", ""))
     parser.parse("\n".join(who_ini_lines))
     api_factory = APIFactory(parser.identifiers,
