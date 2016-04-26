@@ -1,5 +1,6 @@
 
 import os
+import sys
 from setuptools import setup, find_packages
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -12,12 +13,16 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = ['pyramid', 'repoze.who', 'unittest2']
 
+if sys.version_info[0] == 3:
+    requires[2] += "py3k"
+
 extras_require = {
     'test': [
         'flake8',
         'nose',
     ]
 }
+
 
 setup(name='pyramid_whoauth',
       version='0.1.2',

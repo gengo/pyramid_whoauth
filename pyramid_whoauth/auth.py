@@ -7,7 +7,7 @@ IAuthenticationPolicy implementation for pyramid_whoauth
 
 """
 
-from zope.interface import implements
+from zope.interface import implementer
 
 from pyramid.interfaces import IAuthenticationPolicy
 from pyramid.security import Everyone, Authenticated
@@ -23,6 +23,7 @@ def _null_callback(userid, request):
     return ()
 
 
+@implementer(IAuthenticationPolicy)
 class WhoAuthenticationPolicy(object):
     """Pyramid authentication policy built on top of repoze.who.
 
@@ -31,8 +32,6 @@ class WhoAuthenticationPolicy(object):
     callback, and does a straightforward transformation between the repoze.who
     API methods and those of pyramid.
     """
-
-    implements(IAuthenticationPolicy)
 
     def __init__(self, api_factory=None, callback=None):
         if callback is None:
