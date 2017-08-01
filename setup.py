@@ -25,11 +25,12 @@ extras_require = {
 
 
 setup(name='pyramid_whoauth',
-      version='0.1.2',
+      version='0.2.0',
       description='pyramid_whoauth',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
           "Programming Language :: Python :: 2.7",
+          "Programming Language :: Python :: 3.6",
           "Framework :: Pylons",
           "Topic :: Internet :: WWW/HTTP",
       ],
